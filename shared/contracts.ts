@@ -47,6 +47,11 @@ export type ApiErrorBody = {
   };
 };
 
+// 默认演示账号。仅本地开发启用，关闭时不返回任何凭据。
+export type DemoAccountDto =
+  | { enabled: false }
+  | { enabled: true; email: string; password: string };
+
 export type HealthDto = {
   status: "ok";
   uptimeSec: number;

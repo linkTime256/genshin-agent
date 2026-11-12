@@ -4,6 +4,7 @@ import type {
   CharacterSummary,
   ChatHistoryDto,
   ChatListItem,
+  DemoAccountDto,
   HealthDto,
   ListResponse,
   SessionUser,
@@ -124,6 +125,7 @@ export const api = {
       body: JSON.stringify({ name, email, password }),
     }),
   signOut: () => request<{ success: boolean }>("/api/auth/sign-out", { method: "POST" }),
+  demoAccount: () => request<DemoAccountDto>("/api/demo-account"),
   health: () => request<HealthDto>("/health"),
   chats: () => request<{ chats: ChatListItem[] }>("/chats"),
   history: (chatId: string) =>

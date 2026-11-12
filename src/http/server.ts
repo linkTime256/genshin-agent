@@ -9,7 +9,7 @@ import { runTurn } from "../chats/turn";
 import { config } from "../config/env";
 import { db } from "../db";
 import { characters } from "../db/schema";
-import type { ChatHistoryDto, ChatMessageDto, HealthDto, ReadyDto } from "../../shared/contracts";
+import type { ChatHistoryDto, ChatMessageDto, DemoAccountDto, HealthDto, ReadyDto } from "../../shared/contracts";
 import { errorResponse, notFoundResponse } from "./errors";
 import type { AppEnv } from "./env";
 import { requestContext } from "./middleware";
@@ -49,6 +49,16 @@ app.get("/ready", (c) => {
 
 // 注册和登录走 Better Auth，会下发同源会话 Cookie。
 app.all("/api/auth/*", (c) => auth.handler(c.req.raw));
+
+// 默认演示账号：公开的只是本地演示凭据，关闭后不再返回任何账号信息。
+app.get("/api/demo-account", (c) => {
+  if (!config.demoUser) return c.json({ enabled: false } satisfies DemoAccountDto);
+  return c.json({
+    enabled: true,
+    email: config.demoUser.email,
+    password: config.demoUser.password,
+  } satisfies DemoAccountDto);
+});
 
 // 只保护 API 路径；静态资源和页面本身公开，未登录由前端引导去登录。
 app.use("*", async (c, next) => {
@@ -151,7 +161,7 @@ function isProtectedApiPath(path: string) {
 }
 
 function isApiPath(path: string) {
-  return path.startsWith("/api/") || isProtectedApiPath(path);
+  return path === "/api/demo-account" || path.startsWith("/api/") || isProtectedApiPath(path);
 }
 
 const MIME: Record<string, string> = {

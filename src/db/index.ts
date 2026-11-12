@@ -1,11 +1,11 @@
-import { join } from "node:path";
 import { Database } from "bun:sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { pushSQLiteSchema } from "drizzle-kit/api";
+import { config } from "../config/env";
 import { schema } from "./schema";
 
-// src/db 再上两级就是项目根目录。
-const file = join(import.meta.dir, "../../agent.sqlite");
+// 默认落在项目根目录，可用 DATABASE_PATH 指向别处（例如集成测试用临时库）。
+const file = config.databasePath;
 
 const sqlite = new Database(file);
 sqlite.run("PRAGMA foreign_keys = ON");

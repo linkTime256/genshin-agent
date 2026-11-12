@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from "react";
-import type { SessionUser } from "../../../shared/contracts";
+import { useEffect, useState, type FormEvent } from "react";
+import type { DemoAccountDto, SessionUser } from "../../../shared/contracts";
 import { api } from "../api/client";
 
 type Props = { onAuthenticated: (user: SessionUser) => void };
@@ -11,6 +11,29 @@ export default function AuthPanel({ onAuthenticated }: Props) {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [demo, setDemo] = useState<DemoAccountDto | null>(null);
+
+  // 服务端启用默认演示用户时，登录页给出一键入口；关闭时这个卡片不出现。
+  useEffect(() => {
+    let alive = true;
+    api.demoAccount()
+      .then((result) => { if (alive) setDemo(result); })
+      .catch(() => { /* 拿不到演示账号不影响正常登录 */ });
+    return () => { alive = false; };
+  }, []);
+
+  async function signInWith(emailValue: string, passwordValue: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await api.signIn(emailValue, passwordValue);
+      onAuthenticated(result.user);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "登录失败，请稍后再试");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -23,17 +46,27 @@ export default function AuthPanel({ onAuthenticated }: Props) {
       setError("密码至少 8 位");
       return;
     }
+    if (mode === "login") {
+      await signInWith(email.trim(), password);
+      return;
+    }
     setBusy(true);
     try {
-      const result = mode === "login"
-        ? await api.signIn(email.trim(), password)
-        : await api.signUp(name.trim(), email.trim(), password);
+      const result = await api.signUp(name.trim(), email.trim(), password);
       onAuthenticated(result.user);
     } catch (err) {
       setError(err instanceof Error ? err.message : "操作失败，请稍后再试");
     } finally {
       setBusy(false);
     }
+  }
+
+  function useDemoAccount() {
+    if (!demo?.enabled || busy) return;
+    setMode("login");
+    setEmail(demo.email);
+    setPassword(demo.password);
+    void signInWith(demo.email, demo.password);
   }
 
   return (
@@ -105,6 +138,16 @@ export default function AuthPanel({ onAuthenticated }: Props) {
             {busy ? "处理中…" : mode === "login" ? "登录" : "注册并登录"}
           </button>
         </form>
+
+        {demo?.enabled && (
+          <div className="demo-account">
+            <div>
+              <strong>默认演示账号</strong>
+              <span>{demo.email} / {demo.password}</span>
+            </div>
+            <button type="button" onClick={useDemoAccount} disabled={busy}>一键登录</button>
+          </div>
+        )}
 
         <p className="auth-hint">会话由服务端 Cookie 保存，页面不会把令牌写进本地存储。</p>
       </div>

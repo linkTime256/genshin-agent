@@ -66,6 +66,17 @@ h1, h2, h3, h4, p { margin: 0; }
 }
 .primary-button:hover:not(:disabled) { filter: brightness(1.06); }
 .auth-hint { margin-top: 18px; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.demo-account {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: 18px; padding: 12px 14px; border-radius: 10px;
+  background: var(--accent-soft); border: 1px solid #dcdef9;
+}
+.demo-account strong { display: block; font-size: 12px; color: var(--accent); }
+.demo-account span { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; word-break: break-all; }
+.demo-account button {
+  flex-shrink: 0; border: 0; border-radius: 8px; padding: 8px 12px;
+  background: var(--accent); color: #fff; font-size: 12px; font-weight: 600;
+}
 .loading-screen { color: var(--muted); font-size: 14px; }
 
 /* ---------- 框架 ---------- */
