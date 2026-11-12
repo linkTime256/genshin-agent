@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { config } from "../config/env";
 
 declare module "openai/resources/chat/completions/completions" {
   interface ChatCompletionCreateParamsBase {
@@ -14,7 +15,7 @@ export type ToolDefinition = OpenAI.Chat.ChatCompletionFunctionTool;
 
 // deepseek 为什么是 openai?  openai定义了一套 llm 的交互标准 然后 deepseek实现了这套标准
 const client = new OpenAI({
-  apiKey: process.env.DEEPSEEK_API_KEY,
+  apiKey: config.deepseekApiKey,
   baseURL: "https://api.deepseek.com", // 是 deepseek 的地址
 });
 

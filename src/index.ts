@@ -1,3 +1,4 @@
+import { config } from "./config/env";
 import { listen } from "./http/server";
 
-listen(3000);
+listen(config.port);

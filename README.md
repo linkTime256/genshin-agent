@@ -15,7 +15,39 @@ Agent 开发课程基础篇 Demo：原神小助手。
 
 3. 复制 `.env.example` 为 `.env`，填入 DeepSeek API Key 和 `BETTER_AUTH_SECRET`。
 
-## 运行
+## 运行（网页版）
+
+先构建一次前端，再启动服务；前后端同源，一个地址就够了：
+
+```bash
+bun run build:web
+bun start
+```
+
+打开 `http://127.0.0.1:3000`。首次使用点「注册」（密码至少 8 位），登录后即可：
+
+- **对话**：多会话切换、SSE 逐字流式回复、切换聊天自动加载历史。
+- **角色图鉴**：按名字/元素/星级筛选，详情里看星级、元素、武器类型、推荐武器与圣遗物套装效果。
+- **武器 / 圣遗物**：独立目录页，可从角色详情跳转。
+- **联动**：图鉴里点「问一下助手」会自动把问题发进对话；对话中提到的角色会出现在右侧快捷入口，点一下回到图鉴。
+
+改前端代码时用开发模式（后端 3000 + Vite 5173，Vite 自动代理 API）：
+
+```bash
+bun run dev
+```
+
+然后打开 `http://127.0.0.1:5180`。`bun run dev` 会同时起后端和 Vite，所以用它时不要再单独跑 `bun start`；也可以只跑 `bun run dev:web`，但要先在另一个终端跑 `bun start`。
+
+类型检查与构建：
+
+```bash
+bun run typecheck        # 后端 + 共享契约
+bun run typecheck:web    # 前端
+bun run build:web        # 产物写到 web/dist
+```
+
+## 运行（控制台版）
 
 服务端：
 
@@ -58,11 +90,20 @@ bun run client
 ## 目录结构
 
 ```
+shared/contracts.ts         # 前后端共享的 DTO 类型
 src/
 ├── index.ts                # 启动 HTTP 服务
-├── client.ts               # 测试客户端：注册、登录、发消息
-├── db/                     # SQLite 和 Drizzle 表
-├── http/                   # 路由、JSON、SSE
+├── config/env.ts           # 环境变量集中读取与启动校验
+├── client.ts               # 控制台测试客户端：注册、登录、发消息
+├── domain/errors.ts        # 类型化领域错误
+├── db/                     # SQLite 和 Drizzle 表；seed.ts 预置图鉴示例数据
+├── http/
+│   ├── server.ts           # 路由、SSE、静态托管、健康检查、优雅停机
+│   ├── middleware.ts       # 请求 ID、结构化日志、安全头
+│   ├── errors.ts           # 全局错误处理与规范化错误响应
+│   └── routes/catalog.ts   # 图鉴 REST 控制器
+├── services/               # 业务逻辑（不依赖 HTTP 类型）
+├── repositories/           # 数据查询（避免 N+1）
 ├── auth/                   # Better Auth：用户和登录 token
 ├── chats/                  # 聊天、消息，以及一轮对话
 ├── agents/                 # 回答方式
@@ -77,6 +118,13 @@ src/
 │   └── get-character.ts    # 查角色资料
 └── utils/
     └── logger.ts           # 写 log.txt
+web/                        # React + Vite 前端
+├── index.html
+├── vite.config.ts          # 开发代理 + 构建到 web/dist
+└── src/
+    ├── api/client.ts       # 类型化 fetch 封装、错误映射、SSE 解析
+    ├── components/         # 认证、对话、图鉴、武器与圣遗物页面
+    └── constants.ts        # 元素 / 武器类型中文映射
 ```
 
 新加工具：在 `tools/` 里加一个文件，导出 `definition` 和 `run`，再登记到 `tools/index.ts`。
